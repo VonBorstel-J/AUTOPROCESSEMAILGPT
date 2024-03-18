@@ -1,0 +1,76 @@
+Use curl -X POST http://127.0.0.1:5000/process_emails -H "Content-Type: application/json" -d "{\"raw_email\": \"YourBase64EncodedEmailHere\"}"
+to test for any emails in inbox
+
+Models: 
+    -Mr.Q: asst_Kv3q8KIHpiLOwbT7w3syWJ5J
+    -GPT-4 Turbo NEWEST:gpt-4-0125-preview
+    -GPT-4 Turbo Preview OG:  gpt-4-turbo-preview
+    -GPT-3.5 Turbo Preview: gpt-3.5-turbo-0125
+    -GPT 3.5 Turbo OG: gpt-3.5-turbo
+
+
+
+    ignore email logic: if it is not addressed to assignments@keystoneexperts.com we can filter to ignore
+    if it requires you to make an update or change in quickbase its priority 
+
+
+Email Processing and Analysis System
+Overview
+The Email Processing and Analysis System is designed to automate the extraction and analysis of email content, leveraging the Gmail API for email retrieval and OpenAI's GPT models for intelligent data extraction. Tailored for scenarios requiring structured insights from unstructured email data, it's ideal for insurance claims processing, customer feedback analysis, and more. The system prioritizes efficiency, scalability, and security, making it suitable for businesses seeking to streamline their email handling processes.
+
+Key Features
+Automated Email Retrieval: Fetches emails directly from Gmail, reducing manual oversight.
+Advanced Data Extraction: Employs OpenAI's GPT models to intelligently analyze and extract key information from emails, adapting to various email formats.
+External Attachment Storage: Safely handles attachments by storing them externally, maintaining system performance and scalability.
+Structured Data Storage: Organizes extracted information in a relational database, facilitating easy access and analysis.
+Enhanced Security: Implements best practices to ensure data privacy and system security, compliant with standard regulations.
+
+
+Getting Started
+Prerequisites
+Python 3.7 or later.
+Active accounts and API access on Google Cloud Platform (GCP) and OpenAI.
+A configured Gmail account for email retrieval.
+An external storage solution, such as Google Cloud Storage, for managing attachments.
+Installation and Configuration
+Clone the Repository:
+
+bash
+Copy code
+git clone <repository-url>
+cd path/to/repository
+Install Dependencies:
+
+Copy code
+pip install -r requirements.txt
+Environment Setup:
+
+Create a .env file in the project root directory.
+Add the following keys:
+makefile
+Copy code
+OPENAI_API_KEY=<your-openai-api-key>
+GCP_SERVICE_ACCOUNT_FILE=<path-to-your-gcp-service-account-json>
+Ensure the environment variables are correctly configured in your system.
+Gmail API Setup:
+
+Follow Google's Gmail API Quickstart to set up your Gmail API access and download your credentials.json.
+Place credentials.json in the project root.
+Google Cloud Storage Setup (for attachments):
+
+Configure a GCP bucket for attachment storage.
+Ensure your service account has appropriate permissions and that GCP_SERVICE_ACCOUNT_FILE points to the correct JSON key file.
+Usage Instructions
+Run the application to start processing emails:
+
+Copy code
+python app.py
+This will automatically fetch new emails, extract relevant information, handle attachments, and populate your database with structured data.
+
+Contributing
+We welcome contributions to improve functionality or documentation. Please adhere to the following guidelines:
+
+Fork the repository and create your feature branch: git checkout -b feature/AmazingFeature
+Commit your changes: git commit -am 'Add some AmazingFeature'
+Push to the branch: git push origin feature/AmazingFeature
+Open a pull request.

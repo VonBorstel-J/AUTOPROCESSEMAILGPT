@@ -1,0 +1,59 @@
+# from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Boolean  # Correct import
+# from sqlalchemy.orm import declarative_base, sessionmaker
+# import datetime
+
+# Base = declarative_base()
+
+# class Email(Base):
+#     __tablename__ = 'emails'
+#     id = Column(Integer, primary_key=True)
+#     email_id = Column(String)
+#     sender = Column(String)
+#     subject = Column(String)
+#     body = Column(Text)
+#     attachments = Column(Text)  # For future updates
+#     processed = Column(Boolean, default=False)
+
+#     # Fields from the master template
+#     insured_name = Column(String)
+#     claim_number = Column(String)
+#     date_of_loss = Column(DateTime)
+#     policy_number = Column(String)
+#     property_type = Column(String)
+#     assignment_type = Column(String)
+#     priority = Column(String)
+    
+#     # Additional metadata fields
+#     parsed_data_summary = Column(Text)  # Store summary or any structured data as JSON string
+#     processing_status = Column(String, default='pending')  # e.g., pending, processed, reviewed
+#     created_at = Column(DateTime, default=datetime.datetime.utcnow)
+#     updated_at = Column(DateTime, default=datetime.datetime.utcnow, onupdate=datetime.datetime.utcnow)
+
+# def save_email_to_database(session, email_id, sender, subject, body, attachments, **kwargs):
+#     email_entry = Email(
+#         email_id=email_id,  # Add this line
+#         sender=sender,
+#         subject=subject,
+#         body=body,
+#         attachments=str(attachments),
+#         **kwargs  # Use keyword arguments to dynamically assign template fields
+#     )
+#     session.add(email_entry)
+#     session.commit()
+
+# # Database connection and session setup
+# engine = create_engine('sqlite:///emails.db', echo=True, future=True)
+# Base.metadata.create_all(engine)
+# Session = sessionmaker(bind=engine)
+
+# def is_email_processed(session, email_id):
+#     """Check if an email has been processed."""
+#     return session.query(Email).filter(Email.email_id == email_id, Email.processed == True).count() > 0
+
+# def mark_email_as_processed(session, email_id):
+#     """Mark an email as processed."""
+#     email = session.query(Email).filter(Email.email_id == email_id).first()
+#     if email:
+#         email.processed = True
+#         session.commit()
+
