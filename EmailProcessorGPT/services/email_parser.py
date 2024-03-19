@@ -3,11 +3,10 @@ import base64
 import email
 import spacy
 import re
-from spacy.lang.en import English  
-from mongodb_setup import insert_email  
+from mongodb_setup import get_db, db
 
 # Load the spaCy language model
-nlp = spacy.load("en_core_web_sm")  
+nlp = spacy.load("en_core_web_sm")
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -27,11 +26,11 @@ def parse_email(raw_email):
             'body': body,
             'email_id': email_id
         }
-        
-        # After parsing, insert the email into MongoDB
+
+        # Insert the parsed email into MongoDB
         insert_email(parsed_email)
-        
-        return parsed_email  # You may or may not need to return this based on your workflow
+
+        return parsed_email
     except Exception as e:
         logging.error(f"Error parsing email: {e}")
         return None
@@ -54,7 +53,6 @@ def get_body(email_message):
     except Exception as e:
         logging.error(f"Error extracting email body: {e}")
         return None
-
 
 def determine_priority(parsed_email):
     """Determine the priority of the email based on its content using spaCy."""
@@ -83,6 +81,12 @@ def extract_dates(text):
     doc = nlp(text)
     dates = [ent.text for ent in doc.ents if ent.label_ == 'DATE']
     return dates
+
+def insert_email(parsed_email):
+    """Insert the parsed email into MongoDB."""
+    db = get_db()
+    emails_collection = db.emails
+    emails_collection.insert_one(parsed_email)
 
 # Example usage
 if __name__ == '__main__':

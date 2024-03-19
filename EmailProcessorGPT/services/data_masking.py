@@ -5,10 +5,6 @@ def mask_sensitive_data(text):
     """
     Mask sensitive information in the given text.
 
-    This function identifies patterns or rules to detect sensitive information
-    (e.g., names, email addresses, phone numbers, addresses, etc.) and replaces
-    them with annotated contextual placeholders.
-
     Args:
         text (str): The input text to be masked.
 

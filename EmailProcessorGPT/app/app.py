@@ -1,26 +1,19 @@
+import os
 from flask import Flask, jsonify
 from gmail_integration import authenticate_gmail_api, get_emails, get_email_content
-from gpt_integration import summarize_email, extract_structured_data, generate_response
-from mongodb_setup import db, insert_email  # Ensure this setup for MongoDB connection is correct
+from email_parser import parse_email, determine_priority
 from data_masking import mask_sensitive_data
+from gpt_integration import summarize_email, extract_structured_data, generate_response
+from mongodb_setup import get_db, init_app
 import logging
-import traceback
 
-app = Flask(__name__)
+# Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def process_email_content(email_content):
-    try:
-        masked_body = mask_sensitive_data(email_content['body'])
-        summary = summarize_email(masked_body) if masked_body else "Analysis Pending"
-        structured_data = extract_structured_data(summary) if summary != "Analysis Pending" else {}
-        response = generate_response(structured_data, masked_body) if structured_data else "Response Pending"
-        status = "processed" if summary != "Analysis Pending" else "pending_analysis"
-        
-        return masked_body, summary, structured_data, response, status, None
-    except Exception as e:
-        logging.error("Error during email processing: %s", e)
-        return None, "Analysis Pending", {}, "Response Pending", "error", str(e)
+app = Flask(__name__)
+
+# Initialize MongoDB
+init_app(app)
 
 @app.route('/process_emails', methods=['POST'])
 def process_emails():
@@ -28,40 +21,50 @@ def process_emails():
         gmail_service = authenticate_gmail_api()
         email_ids = get_emails(gmail_service)
         processed_count = 0
-        
+
         for email_id in email_ids:
-            if db.emails.count_documents({"email_id": email_id, "processed": True}) == 0:
-                email_content = get_email_content(gmail_service, email_id)
-                if email_content:
-                    masked_body, summary, structured_data, response, status, error_reason = process_email_content(email_content)
-                    
-                    email_document = {
-                        "email_id": email_id,
-                        "sender": email_content['sender'],
-                        "subject": email_content['subject'],
-                        "body": masked_body,
-                        "attachments": email_content.get('attachments', []),
-                        "processed": status == "processed",
-                        "processing_info": {
-                            "masked_body": masked_body,
-                            "summary": summary,
-                            "structured_data": structured_data,
-                            "response": response,
-                            "status": status,
-                            "error_reason": error_reason
-                        },
-                    }
-                    
-                    insert_email(email_document)
-                    processed_count += 1
-                    logging.info(f"Email ID: {email_id} processed and saved. Status: {status}")
+            email_content = get_email_content(gmail_service, email_id)
+            if email_content:
+                parsed_email = parse_email(email_content['raw'])
+                if parsed_email:
+                    masked_body = mask_sensitive_data(parsed_email['body'])
+                    summary = summarize_email(masked_body)
+                    if summary:
+                        structured_data = extract_structured_data(summary)
+                        if structured_data:
+                            suggestions = generate_response(structured_data, masked_body)
+                            if suggestions:
+                                # Process the email with the structured data and suggestions
+                                priority = determine_priority(parsed_email)
+                                processed_email = {
+                                    **parsed_email,
+                                    'priority': priority,
+                                    'structured_data': structured_data,
+                                    'suggestions': suggestions,
+                                    'processed': True
+                                }
+
+                                # Insert the processed email into MongoDB
+                                db = get_db()
+                                emails_collection = db.emails
+                                emails_collection.insert_one(processed_email)
+
+                                processed_count += 1
+                                logging.info(f"Email ID: {email_id} processed and saved.")
+                            else:
+                                logging.warning(f"Skipping email {email_id} due to failure in generating suggestions.")
+                        else:
+                            logging.warning(f"Skipping email {email_id} due to failure in extracting structured data.")
+                    else:
+                        logging.warning(f"Skipping email {email_id} due to failure in summarizing the email.")
                 else:
-                    logging.warning(f"Skipping email {email_id} due to error in fetching content.")
-                    
+                    logging.warning(f"Skipping email {email_id} due to failure in parsing the email.")
+            else:
+                logging.warning(f"Skipping email {email_id} due to error in fetching content.")
+
         return jsonify({"status": "success", "emails_processed": processed_count}), 200
     except Exception as e:
-        logging.error("An error occurred: %s", e)
-        traceback.print_exc()
+        logging.error(f"An error occurred: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500
 
 if __name__ == '__main__':

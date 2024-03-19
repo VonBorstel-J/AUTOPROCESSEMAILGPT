@@ -15,6 +15,6 @@ boolean
 pymongo
 retrying
 storage
-
+typing 
 
 ##python -m spacy download en_core_web_sm

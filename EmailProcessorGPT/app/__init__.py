@@ -1,13 +1,13 @@
 from flask import Flask
-app = Flask(__name__)
+from .routes.email_routes import email_bp
+from .routes.template_routes import template_bp
+# Import other blueprints
 
-# Configuration loading, if necessary
-# app.config.from_pyfile('config.py')
-
-# Database initialization
-from database.mongodb_setup import initialize_db
-initialize_db(app)
-
-# Import routes
-from app.routes import init_routes
-init_routes(app)
+def create_app():
+    app = Flask(__name__)
+    
+    app.register_blueprint(email_bp)
+    app.register_blueprint(template_bp)
+    # Register other blueprints
+    
+    return app

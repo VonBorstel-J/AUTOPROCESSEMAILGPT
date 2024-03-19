@@ -2,12 +2,14 @@
 import os
 from pymongo import MongoClient
 from pymongo.server_api import ServerApi
-from flask import EmailProcessorGPT, g
+from flask import Flask
 
 # MongoDB URI - replace <password> with your actual password and adjust the URI as needed
 # uri = "mongodb+srv://keystonetester23:keystone1@cluster0.wulp4r5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
+# MongoDB URI
 uri = os.getenv("MONGO_URI")
+
 # Create a new client and connect to the server
 client = MongoClient(uri, server_api=ServerApi('1'))
 
@@ -15,18 +17,13 @@ client = MongoClient(uri, server_api=ServerApi('1'))
 DATABASE_NAME = "emailAutomationDB"
 db = client[DATABASE_NAME]
 
-
 def get_db():
     """Get a MongoDB database connection."""
-    if "db" not in g:
-        g.db = MongoClient(uri).get_default_database()
-    return g.db
+    return db
 
 def close_db(e=None):
     """Close the MongoDB connection."""
-    db = g.pop("db", None)
-    if db is not None:
-        db.client.close()
+    client.close()
 
 def init_app(app):
     """Initialize the app with MongoDB."""

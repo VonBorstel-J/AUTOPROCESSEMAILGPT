@@ -1,6 +1,6 @@
-# preprocessing.py
+##Email_processing.py##
+
 import spacy
-import re
 
 # Load the spaCy language model
 nlp = spacy.load("en_core_web_sm")
@@ -8,9 +8,6 @@ nlp = spacy.load("en_core_web_sm")
 def preprocess_email(text):
     """
     Preprocess the email text by analyzing the placeholders and their context.
-
-    This function identifies the placeholders and their context in the email text,
-    and generates an optimized prompt for the GPT model.
 
     Args:
         text (str): The input email text.
